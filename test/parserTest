@@ -1,0 +1,27 @@
+// ss
+// sd
+var add = fn(x,y){
+    var c = 2;
+    return x + y;
+};
+
+add(2,3+4);
+
+var b = if (3 > 4){
+    15;
+} else
+{
+    16;
+};
+
+var a = 5.12;
+len(a);
+
+var b = fn(x){
+  return x * x;
+};
+var c = [1,2,4*5,true,false,3==2];
+len(c);
+var d = {"name":"Bob","age":25};
+type(a);
+type(c);

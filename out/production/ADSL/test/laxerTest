@@ -1,14 +1,14 @@
 //test laxer input
 
-let a = 5.12;
-let b = fn(x){
+var a = 5.12;
+var b = fn(x){
   return x * x;
 };
-let c = [1,2,4*5,true,false,3==2];
-let d = {"name":"Bob","age":25};
+var c = [1,2,4*5,true,false,3==2];
+var d = {"name":"Bob","age":25};
 
-let e=6;
-let f="a=6";
+var e=6;
+var f="a=6";
 g= 1<=2;
 a||b
 

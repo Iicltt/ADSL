@@ -1,28 +1,28 @@
-package lexer;
+package parser;
 
-import token.Token;
-import token.TokenType;
+import lexer.Lexer;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
-public class LaxerTest {
+public class ParserTest {
     public static void main(String[] args) throws IOException {
-        String filePath = "test/laxerTest";
+        String filePath = "test/parserTest";
         Path path = Paths.get(filePath);
         byte[] data = Files.readAllBytes(path);
         String input = new String(data);
-        //System.out.println(input);
+
         Lexer lexer = new Lexer(input);
 
-        Token t = lexer.nextToken();
+        Parser parser = new parser.Parser(lexer);
 
-        while (!Objects.equals(t.type, TokenType.EXIT)) {
-            System.out.println(t.toString());
-            t = lexer.nextToken();
+        while (!parser.isEnd()) {
+            System.out.println(parser.getNextStatement().getString(""));
         }
+
     }
 }
+

@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 public class TokenType {
     // 判断某一字符串是否是关键字或符号
-    public static HashMap<String,String> types = new HashMap<>();
+    public static HashMap<String, String> types = new HashMap<>();
     // 判断类似 ||, && 这种两个字符且第一个字符单独存在不能作为一种运算符的运算符
     public static HashSet<String> twoOpr = new HashSet<>();
     // 符号
@@ -15,7 +15,7 @@ public class TokenType {
     // 加号
     public static final String ADD = "ADD";
     // 减号
-    public static final String SUB ="SUB";
+    public static final String SUB = "SUB";
     // 乘号
     public static final String MUL = "MUL";
     // 除号
@@ -68,7 +68,7 @@ public class TokenType {
     // 函数
     public static final String FUNCTION = "FUNCTOIN";
     // 赋值
-    public static final String LET = "LET";
+    public static final String VAR = "VAR";
     // true
     public static final String TRUE = "TRUE";
     // false
@@ -79,8 +79,8 @@ public class TokenType {
     public static final String ELSE = "ELSE";
     // return
     public static final String RETURN = "RETURN";
-    // 数字
-    public static final String NUMBER = "NUMBER";
+    // 整数
+    public static final String INT = "INT";
     // 浮点数
     public static final String FLOAT = "FLOAT";
     // 变量
@@ -103,7 +103,7 @@ public class TokenType {
 
     public static final String EXIT = "EXIT";
 
-    static{
+    static {
         types.put("=", ASSIGN);
         types.put("+", ADD);
         types.put("-", SUB);
@@ -128,7 +128,7 @@ public class TokenType {
         types.put("{", LBRACE);
         types.put("}", RBRACE);
         types.put("fn", FUNCTION);
-        types.put("let", LET);
+        types.put("var", VAR);
         types.put("true", TRUE);
         types.put("false", FALSE);
         types.put("if", IF);
