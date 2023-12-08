@@ -1,12 +1,20 @@
 // ss
 // sd
-var add = fn(x,y){
+
+
+var dd = 2;
+var j$(x){
+    return x + x;
+};
+
+
+var add$(x,y){
     var c = 2;
     return x + y;
 };
 
 add(2,3+4);
-
+add(add(2,3),3);
 var b = if (3 > 4){
     15;
 } else
@@ -17,7 +25,7 @@ var b = if (3 > 4){
 var a = 5.12;
 len(a);
 
-var b = fn(x){
+var b$(x){
   return x * x;
 };
 var c = [1,2,4*5,true,false,3==2];

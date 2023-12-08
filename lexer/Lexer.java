@@ -108,14 +108,8 @@ public class Lexer {
         //跳过所有空格
         skipWhiteSpace();
 
-
-        // 已经结束
-        // if (isEnd())
-        //     return new Token(TokenType.EOF, TokenType.EOF);
-
         String chString = String.valueOf(ch);
-
-        // 如果出现在types或twoOpr中，那么则说明这个字符为
+        //System.out.println(ch);
         if (TokenType.types.containsKey(chString) || TokenType.twoOpr.contains(chString)) {
             readChar();
 
@@ -260,21 +254,6 @@ public class Lexer {
         readChar();
 
         return ans;
-    }
-
-    private char peekChar() {
-        if (sourceCode) {
-            if (readPos >= input.length())
-                return 0;
-            else
-                return input.charAt(readPos);
-        } else {
-            if (readPos >= sb.length())
-                return 0;
-            else
-                return sb.charAt(readPos);
-        }
-
     }
 
 

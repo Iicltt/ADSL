@@ -12,19 +12,17 @@ import java.util.Objects;
 public class Parser {
     private Lexer lexer;
     private Token curToken;
-    private Token peekToken;
 
     public Parser(Lexer l) {
         lexer = l;
-        nextToken();
+        // 读取第一个Token至curToken
         nextToken();
     }
 
     private void nextToken() {
-        curToken = peekToken;
-        peekToken = lexer.nextToken();
+        curToken = lexer.nextToken();
 
-        //去掉注释
+        //跳过注释
         while (curToken != null && Objects.equals(curToken.type, TokenType.COMMENT))
             nextToken();
     }
@@ -33,42 +31,64 @@ public class Parser {
         return lexer.isEnd();
     }
 
+    /**
+     * The grammar
+     * <p>
+     * program ::= <program-block>
+     * program-block ::= <block>
+     * block ::= {single-statement}*
+     * single-statement =[ [<Var-statement> | <callFunction-Statement> |
+     * <function-definition>(和callFunction有冲突) | <expression-statement> | <return-statement> | <identifier> ';' (和callFunction可能有冲突)]
+     * | [<if-statment>]]
+     * <p>
+     * Var Statement
+     * Var-Statement ::= 'var' <identifier> '=' (<callFunction-Statement> | <expression-statement> | <identifier>)
+     * Var-Statement ::= 'var' <identifier> [function-definition]
+     * <p>
+     * Function Invocation:
+     * callFunction-Statement ::= [<identifier> | <function-definition> ] '('<parameters>')'
+     * parameters ::= {<expression-statement> | callFunction}*
+     * <p>
+     * If-else Statement:
+     * if-statement ::= 'if' '{' <program-block> '}'  'else' '{' <program-block> '}'
+     * <p>
+     * Function Definition Statement:
+     * function-definition ::= 'fn' '(' <arguments> ')' '{' <function-body> '}'
+     * <arguments> ::= [<identifier> | expression-statement | callFunction-statement] {',' [<identifier> | expression-statement | callFunction-statement] }*
+     * <function-body> ::= <program-block>
+     * <p>
+     * Return Statement:
+     * <return-statement> := 'return' [function]
+     * Expression Statement:
+     * <expression-statement> ::= <compare> '==' <expression-statement> | <compare>  '!=' <expression-statement> | <compare>
+     * <compare> ::=  <arithmetic> '>' <compare> | <arithmetic> '<' <compare> | <arithmetic>
+     * <arithmetic> ::= <priority-arithmetic> '+' <arithmetic> | <priority-arithmetic> '-' <arithmetic> | <priority-arithmetic>
+     * <priority-arithmetic> ::= <number> '*' <priority-arithmetic> | <number> '/' <priority-arithmetic> | <number> | <list> | <dict>
+     * | identifier | <callFunction-statement>
+     *
+     * <number> ::= {~}[<integer> | <float> | true | false | (<expression-statement>)] | identifier | callFunction-statement
+     *
+     * <list> ::= '[' expression-statement (',' expression-statement) * ']'
+     *
+     * <dict> ::= '{' (<identifier> ':' expressoinStatement) * '}'
+     * Number or Identifier:
+     * <unsigned integer> ::= <digit> | <unsigned integer> <digit>
+     * <integer> ::= +<unsigned integer>  | ~<unsigned integer> | <unsigned integer>
+     * <identifier> ::= <letter> | <identifier> < digit> | <identifier> <letter>
+     * <float> := <digit>'.'<digit>
+     *
+     * @return Statement
+     */
+
 
     public Statement getNextStatement() {
-        // 从文件输入源码
+        // 从文件输入源码，直接run Test，sourceCode为Ture
         if (lexer.sourceCode) {
             if (lexer.isEnd())
                 return null;
-            else {
-                Statement s = null;
-
-                if (checkType(curToken.type, TokenType.VAR)) {
-                    s = parseVarStatement();
-
-
-                    // 检测分号;
-                    if (!checkSemicolon())
-                        s = null;
-
-                } else if (checkType(curToken.type, TokenType.RETURN)) {
-                    s = parseReturnStatement();
-
-                    if (!checkSemicolon())
-                        s = null;
-
-                } else if (checkType(curToken.type, TokenType.IF)) {
-                    s = parseIfStatement();
-                } else {
-                    s = parseExpressionStatement();
-
-                    if (!checkSemicolon())
-                        s = null;
-                }
-
-                return s;
-            }
+            else
+                return getStatement();
         } else {
-            Statement s = null;
             int cnt = 0;
 
             while (checkType(curToken.type, TokenType.ILLEGAL)) {
@@ -77,48 +97,46 @@ public class Parser {
                 cnt++;
 
                 if (cnt > 10 && checkType(curToken.type, TokenType.ILLEGAL))
-                    return s;
+                    return null;
             }
 
-            if (checkType(curToken.type, TokenType.VAR)) {
-                s = parseVarStatement();
-
-                // 检测分号;
-                if (!checkSemicolon())
-                    s = null;
-
-            } else if (checkType(curToken.type, TokenType.RETURN)) {
-                s = parseReturnStatement();
-
-                if (!checkSemicolon())
-                    s = null;
-
-            } else if (checkType(curToken.type, TokenType.IF)) {
-                s = parseIfStatement();
-            } else {
-                s = parseExpressionStatement();
-
-                if (!checkSemicolon())
-                    s = null;
-            }
-
-            return s;
+            return getStatement();
         }
 
 
+    }
+
+    // 语句结束后都要接上一个分号，不包括if语句，函数定义语句属于ExpressionStatement，也要加分号
+    private Statement getStatement() {
+        Statement s;
+        if (checkType(curToken.type, TokenType.VAR)) {
+            s = parseVarStatement();
+            // 检测分号;
+            if (!checkSemicolon())
+                s = null;
+        } else if (checkType(curToken.type, TokenType.RETURN)) {
+            s = parseReturnStatement();
+            if (!checkSemicolon())
+                s = null;
+        } else if (checkType(curToken.type, TokenType.IF)) {
+            s = parseIfStatement();
+        } else {
+            s = parseExpressionStatement();
+            if (!checkSemicolon())
+                s = null;
+        }
+        return s;
     }
 
     private Statement getNextStatementWithoutCheck() {
         if (lexer.isEnd())
             return null;
         else {
-            Statement s = null;
-
+            Statement s;
             if (checkType(curToken.type, TokenType.VAR)) {
                 s = parseVarStatement();
             } else if (checkType(curToken.type, TokenType.RETURN)) {
                 s = parseReturnStatement();
-
             } else if (checkType(curToken.type, TokenType.IF)) {
                 s = parseIfStatement();
             } else {
@@ -143,9 +161,9 @@ public class Parser {
 
         nextToken();
 
+        // 检查var后是否为标识符
         if (!checkType(curToken.type, TokenType.IDEN)) {
             error(curToken.type, TokenType.IDEN, curToken.pos);
-            varStatement = null;
             return null;
         }
 
@@ -154,32 +172,23 @@ public class Parser {
 
         nextToken();
 
-        if (!checkType(curToken.type, TokenType.ASSIGN)) {
+        // 检查标识符后是否为赋值符号'='或者为'$'，如果为'$'即为函数
+        if (checkType(curToken.type, TokenType.FUNCTION)) {
+            varStatement.value = parseExpressionStatement();
+            return varStatement;
+        } else if (!checkType(curToken.type, TokenType.ASSIGN)) {
             error(curToken.type, TokenType.IDEN, curToken.pos);
-            varStatement = null;
             return null;
         }
 
         nextToken();
 
-        Statement value = null;
-
-        switch (curToken.type) {
-            case TokenType.VAR:
-                value = parseVarStatement();
-                break;
-            case TokenType.IF:
-                value = parseIfStatement();
-                break;
-            case TokenType.RETURN:
-                value = parseReturnStatement();
-                break;
-            default:
-                value = parseExpressionStatement();
-        }
-
-
-        varStatement.value = value;
+        varStatement.value = switch (curToken.type) {
+            case TokenType.VAR -> parseVarStatement();
+            case TokenType.IF -> parseIfStatement();
+            case TokenType.RETURN -> parseReturnStatement();
+            default -> parseExpressionStatement();
+        };
 
         return varStatement;
     }
@@ -213,11 +222,11 @@ public class Parser {
 
             nextToken();
 
+            // 得到list所有元素
             getElementStatement.listIndex = parseExpressionStatement();
 
             if (!checkType(curToken.type, TokenType.RSBRACE)) {
                 error(curToken.type, TokenType.RSBRACE, curToken.pos);
-                getElementStatement = null;
                 return null;
             }
 
@@ -245,7 +254,6 @@ public class Parser {
 
             if (!(s instanceof IdentifierStatement || s instanceof ExpressionStatement || s instanceof CallStatement)) {
                 error(s.getType(), "Identifier, Expression or CallStatement", curToken.pos);
-                res = null;
                 return null;
             }
 
@@ -255,8 +263,7 @@ public class Parser {
                 break;
 
             if (!checkType(curToken.type, TokenType.COMMA)) {
-                error(curToken.type, TokenType.SEMICOLON, curToken.pos);
-                res = null;
+                error(curToken.type, TokenType.COMMA, curToken.pos);
                 return null;
             }
 
@@ -284,7 +291,6 @@ public class Parser {
 
         if (!checkType(curToken.type, TokenType.LPAREN)) {
             error(curToken.type, TokenType.LPAREN, curToken.pos);
-            ifStatement = null;
             return null;
         }
 
@@ -319,10 +325,9 @@ public class Parser {
             bls.statements.add(s);
         }
 
-        // Make sure that curToken is '}'
+        // 检查 '}'
         if (!checkType(curToken.type, TokenType.RBRACE)) {
             error(curToken.type, TokenType.RBRACE, curToken.pos);
-            bls = null;
             return null;
         }
 
@@ -338,7 +343,7 @@ public class Parser {
             return null;
         }
 
-        Statement res = null;
+        Statement res;
         FunctionStatement functionStatement = new FunctionStatement();
 
         nextToken();
@@ -348,7 +353,6 @@ public class Parser {
 
         if (!checkType(curToken.type, TokenType.LBRACE)) {
             error(curToken.type, TokenType.LBRACE, curToken.pos);
-            functionStatement = null;
             return null;
         }
 
@@ -356,7 +360,7 @@ public class Parser {
 
         res = functionStatement;
 
-        // 检查是否是函数调用
+        // unknown
         if (checkType(curToken.type, TokenType.LPAREN)) {
             CallStatement callStatement = new CallStatement();
             callStatement.function = functionStatement;
@@ -400,7 +404,7 @@ public class Parser {
      * D' := *ED' | /ED' | null
      * E  := (A) | num | iden | ~E
      *
-     * @return
+     * @return Statement
      */
 
     private Statement parseExpressionStatement() {
@@ -410,7 +414,7 @@ public class Parser {
     /**
      * Top layer.
      *
-     * @return
+     * @return Statement
      */
     private Statement A() {
         ExpressionStatement root = new ExpressionStatement();
@@ -425,8 +429,8 @@ public class Parser {
     /**
      * Second top.
      *
-     * @param root
-     * @return
+     * @param root ExpressionStatement
+     * @return Statement
      */
     private Statement A_1(ExpressionStatement root) {
         if (checkType(curToken.type, TokenType.EQU) || checkType(curToken.type, TokenType.NEQU) ||
@@ -572,7 +576,6 @@ public class Parser {
 
         // 检查当前令牌是否是'['
         if (!checkType(curToken.type, TokenType.LSBRACE)) {
-            res = null;
             error(curToken.type, TokenType.LSBRACE, curToken.pos);
             return null;
         }
@@ -591,7 +594,6 @@ public class Parser {
             if (!checkType(curToken.type, TokenType.COMMA)) {
 
                 error(curToken.type, TokenType.COMMA, curToken.pos);
-                res = null;
                 return null;
             }
 
@@ -601,7 +603,6 @@ public class Parser {
 
         // 检查当前令牌是否是']'
         if (!checkType(curToken.type, TokenType.RSBRACE)) {
-            res = null;
             error(curToken.type, TokenType.COMMA, curToken.pos);
             return null;
         }
@@ -613,11 +614,11 @@ public class Parser {
 
 
     private Statement parseDictStatement() {
-        DictStatement res = null;
+        DictStatement res;
 
         if (!checkType(curToken.type, TokenType.LBRACE)) {
             error(curToken.type, TokenType.LBRACE, curToken.pos);
-            return res;
+            return null;
         }
 
         nextToken();
@@ -634,8 +635,7 @@ public class Parser {
 
             if (!checkType(curToken.type, TokenType.COLONS)) {
                 error(curToken.type, TokenType.COLONS, curToken.pos);
-                res = null;
-                return res;
+                return null;
             }
 
             nextToken();
@@ -649,8 +649,7 @@ public class Parser {
 
             if (!checkType(curToken.type, TokenType.COMMA)) {
                 error(curToken.type, TokenType.COMMA, curToken.pos);
-                res = null;
-                return res;
+                return null;
             }
 
             nextToken();
@@ -658,8 +657,7 @@ public class Parser {
 
         if (!checkType(curToken.type, TokenType.RBRACE)) {
             error(curToken.type, TokenType.RBRACE, curToken.pos);
-            res = null;
-            return res;
+            return null;
         }
 
         nextToken();
@@ -668,7 +666,7 @@ public class Parser {
     }
 
     private Statement parseBuildIn() {
-        Statement res = null;
+        Statement res;
 
 
         if (!checkType(curToken.type, TokenType.BUILDIN)) {
@@ -683,7 +681,6 @@ public class Parser {
 
         if (!checkType(curToken.type, TokenType.LPAREN)) {
             error(curToken.type, TokenType.LPAREN, curToken.pos);
-            len = null;
             return null;
         }
 
@@ -694,7 +691,6 @@ public class Parser {
 
         if (!checkType(curToken.type, TokenType.RPAREN)) {
             error(curToken.type, TokenType.RPAREN, curToken.pos);
-            len = null;
             return null;
         }
 

@@ -1,7 +1,7 @@
 //test laxer input
 
 var a = 5.12;
-var b = fn(x){
+var b$(x){
   return x * x;
 };
 var c = [1,2,4*5,true,false,3==2];
@@ -12,4 +12,8 @@ var f="a=6";
 g= 1<=2;
 a||b
 
+
+var j$(x){
+    return x + x;
+};
 exit

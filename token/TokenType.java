@@ -4,16 +4,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class TokenType {
-    // 判断某一字符串是否是关键字或符号
-    public static HashMap<String, String> types = new HashMap<>();
-    // 判断类似 ||, && 这种两个字符且第一个字符单独存在不能作为一种运算符的运算符
-    public static HashSet<String> twoOpr = new HashSet<>();
-    // 符号
-
     // 赋值符号
     public static final String ASSIGN = "ASSIGN";
     // 加号
     public static final String ADD = "ADD";
+    // 符号
     // 减号
     public static final String SUB = "SUB";
     // 乘号
@@ -60,13 +55,12 @@ public class TokenType {
     public static final String COMMENT = "COMMENT";
     // 结尾
     public static final String EOF = "EOF";
-
-    //关键字
-
     // 不合法
     public static final String ILLEGAL = "ILLEGAL";
-    // 函数
-    public static final String FUNCTION = "FUNCTOIN";
+    //函数符号
+    public static final String FUNCTION = "FUNCTION";
+
+    //关键字
     // 赋值
     public static final String VAR = "VAR";
     // true
@@ -91,17 +85,17 @@ public class TokenType {
     public static final String LIST = "LIST";
     // 字典
     public static final String DICT = "DICT";
-
-
     // 函数调用
     public static final String CALLFUNC = "CALLFUNC";
-
     // 内置函数
     public static final String BUILDIN = "BUILDIN";
+    public static final String EXIT = "EXIT";
+    // 判断某一字符串是否是关键字或符号
+    public static HashMap<String, String> types = new HashMap<>();
 
     // 退出
-
-    public static final String EXIT = "EXIT";
+    // 判断类似 ||, && 这种两个字符且第一个字符单独存在不能作为一种运算符的运算符
+    public static HashSet<String> twoOpr = new HashSet<>();
 
     static {
         types.put("=", ASSIGN);
@@ -127,7 +121,10 @@ public class TokenType {
         types.put("]", RSBRACE);
         types.put("{", LBRACE);
         types.put("}", RBRACE);
-        types.put("fn", FUNCTION);
+        //types.put("function", FUNCTION);
+
+        types.put("$", FUNCTION);
+
         types.put("var", VAR);
         types.put("true", TRUE);
         types.put("false", FALSE);
@@ -135,6 +132,7 @@ public class TokenType {
         types.put("else", ELSE);
         types.put("return", RETURN);
 
+        // 辅助函数
         types.put("len", BUILDIN);
         types.put("type", BUILDIN);
 
